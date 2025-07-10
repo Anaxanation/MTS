@@ -1,0 +1,31 @@
+body {
+    background-color: #f8f9fa;
+}
+
+#calendar {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+}
+
+.fc-event {
+    cursor: pointer;
+    border: none;
+    background-color: #4e73df;
+}
+
+.fc-daygrid-event-dot {
+    display: none;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: #4e73df;
+}
+
+.sidebar {
+    height: calc(100vh - 56px);
+    position: sticky;
+    top: 56px;
+}

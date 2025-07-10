@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Настройки CalDAV</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="caldav_url" class="form-label">CalDAV URL</label>
+            <input type="url" class="form-control" id="caldav_url" name="caldav_url" 
+                   value="{{ current_user.caldav_url or '' }}" required>
+            <div class="form-text">Пример: https://caldav.yandex.ru/</div>
+        </div>
+        <div class="mb-3">
+            <label for="caldav_username" class="form-label">Имя пользователя</label>
+            <input type="text" class="form-control" id="caldav_username" 
+                   name="caldav_username" value="{{ current_user.caldav_username or '' }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="caldav_password" class="form-label">Пароль</label>
+            <input type="password" class="form-control" id="caldav_password" name="caldav_password">
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+
+    <div class="mt-4">
+        <h4>Поддерживаемые сервисы:</h4>
+        <ul>
+            <li>Яндекс.Календарь (caldav.yandex.ru)</li>
+            <li>Nextcloud</li>
+            <li>Owncloud</li>
+            <li>Mail.ru Календарь</li>
+            <li>Другие CalDAV-совместимые сервисы</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

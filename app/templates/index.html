@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+      <h1 class="mb-4">Добро пожаловать в Яндекс Календарь</h1>
+      {% if current_user.is_authenticated %}
+        <p class="lead">Вы вошли как {{ current_user.username }}</p>
+        <a href="{{ url_for('main.calendar') }}" class="btn btn-primary btn-lg mt-3">
+          Перейти в календарь
+        </a>
+      {% else %}
+        <p class="lead">Пожалуйста, войдите или зарегистрируйтесь</p>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+          <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+            Войти
+          </a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg">
+            Регистрация
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
