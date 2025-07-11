@@ -6,18 +6,13 @@ from app.models import User, CalendarEvent
 from datetime import datetime
 from app.caldav_utils import sync_with_yandex
 
-# Создаем Blueprint
 main_bp = Blueprint('main', __name__)
 auth_bp = Blueprint('auth', __name__)
 
-
-# Загрузчик пользователя (должен быть в routes.py)
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
-# Маршруты аутентификации
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -63,8 +58,6 @@ def register():
         return redirect(url_for('auth.login'))
     return render_template('auth/register.html')
 
-
-# Основные маршруты
 @main_bp.route('/')
 @login_required
 def index():
@@ -75,9 +68,7 @@ def index():
 @login_required
 def calendar():
     return render_template('calendar.html')
-
-
-# API для календаря
+    
 @main_bp.route('/api/events')
 @login_required
 def get_events():
@@ -118,8 +109,6 @@ def sync_events():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-
-# Обработчики ошибок
 @main_bp.app_errorhandler(404)
 def page_not_found(e):
     return render_template('errors/404.html'), 404
