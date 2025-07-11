@@ -1,71 +1,144 @@
 {% extends "base.html" %}
 
-{% block title %}Календарь{% endblock %}
+{% block title %}Мой Календарь{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+<style>
+    #calendar {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        padding: 20px;
+    }
+    .fc-event {
+        cursor: pointer;
+        border: none;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-      <div class="position-sticky pt-3">
-        <button id="syncBtn" class="btn btn-success w-100 mb-3">
-          <i class="bi bi-arrow-repeat"></i> Синхронизировать
-        </button>
-        <h6>Мои календари</h6>
-        <div class="list-group" id="calendarList">
-          <a href="#" class="list-group-item list-group-item-action active">
-            Основной
-          </a>
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Мой Календарь</h1>
+        <div>
+            <button id="syncBtn" class="btn btn-primary">
+                <i class="bi bi-arrow-repeat"></i> Синхронизировать
+            </button>
+            <button class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#eventModal">
+                <i class="bi bi-plus-circle"></i> Добавить событие
+            </button>
         </div>
-      </div>
     </div>
 
-    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-      <div class="d-flex justify-content-between pt-3 pb-2 mb-3 border-bottom">
-        <h2>Мой календарь</h2>
-        <div class="btn-toolbar mb-2 mb-md-0">
-          <div class="btn-group me-2">
-            <button id="todayBtn" class="btn btn-sm btn-outline-secondary">Сегодня</button>
-            <button id="prevBtn" class="btn btn-sm btn-outline-secondary"><</button>
-            <button id="nextBtn" class="btn btn-sm btn-outline-secondary">></button>
-          </div>
-          <div class="btn-group me-2">
-            <button id="monthView" class="btn btn-sm btn-outline-secondary active">Месяц</button>
-            <button id="weekView" class="btn btn-sm btn-outline-secondary">Неделя</button>
-            <button id="dayView" class="btn btn-sm btn-outline-secondary">День</button>
-          </div>
-          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal">
-            <i class="bi bi-plus"></i> Событие
-          </button>
+    <div id="calendar"></div>
+</div>
+
+<!-- Модальное окно добавления события -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Новое событие</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="eventForm">
+                    <div class="mb-3">
+                        <label class="form-label">Название</label>
+                        <input type="text" class="form-control" id="eventTitle" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Начало</label>
+                            <input type="datetime-local" class="form-control" id="eventStart" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Конец</label>
+                            <input type="datetime-local" class="form-control" id="eventEnd" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" id="eventDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Цвет</label>
+                        <select class="form-select" id="eventColor">
+                            <option value="#3a87ad" selected>Синий</option>
+                            <option value="#5cb85c">Зеленый</option>
+                            <option value="#f0ad4e">Оранжевый</option>
+                            <option value="#d9534f">Красный</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" id="saveEventBtn" class="btn btn-primary">Сохранить</button>
+            </div>
         </div>
-      </div>
-      <div id="calendar"></div>
-    </main>
-  </div>
+    </div>
+</div>
+
+<!-- Модальное окно просмотра события -->
+<div class="modal fade" id="viewEventModal" tabindex="-1">
+    <!-- Аналогично первому модальному окну, для просмотра деталей -->
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/ru.min.js'></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const calendarEl = document.getElementById('calendar');
-  const calendar = new FullCalendar.Calendar(calendarEl, {
-    locale: 'ru',
-    initialView: 'dayGridMonth',
-    headerToolbar: false,
-    events: "{{ url_for('main.get_events') }}",
-  });
-  calendar.render();
-
-  document.getElementById('syncBtn').addEventListener('click', function() {
-    fetch("{{ url_for('main.sync_events') }}", { method: 'POST' })
-      .then(response => response.json())
-      .then(data => {
-        if(data.status === 'success') {
-          calendar.refetchEvents();
-          alert('Синхронизация успешна!');
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'ru',
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: '/api/events',
+        editable: true,
+        selectable: true,
+        eventClick: function(info) {
+            // Обработка клика по событию
+        },
+        dateClick: function(info) {
+            // Обработка клика по дате
         }
-      });
-  });
+    });
+    calendar.render();
+
+    // Синхронизация с Яндекс.Календарем
+    document.getElementById('syncBtn').addEventListener('click', async function() {
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Синхронизация...';
+
+        try {
+            const response = await fetch('/sync', { method: 'POST' });
+            if (response.ok) {
+                calendar.refetchEvents();
+                showToast('Синхронизация успешно завершена!', 'success');
+            } else {
+                const error = await response.json();
+                showToast('Ошибка: ' + error.message, 'danger');
+            }
+        } catch (error) {
+            showToast('Ошибка сети: ' + error, 'danger');
+        } finally {
+            this.disabled = false;
+            this.innerHTML = '<i class="bi bi-arrow-repeat"></i> Синхронизировать';
+        }
+    });
+
+    function showToast(message, type) {
+        // Реализация уведомлений
+    }
 });
 </script>
 {% endblock %}
